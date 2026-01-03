@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Circuit Scout - ISP Verification Assistant</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: #f6f8fb;
+        color: #1f2933;
+      }
+
+      header {
+        background: #102a43;
+        color: #f8f9fa;
+        padding: 2.5rem 4vw;
+      }
+
+      header h1 {
+        margin: 0 0 0.5rem;
+        font-size: 2rem;
+      }
+
+      header p {
+        margin: 0;
+        opacity: 0.85;
+      }
+
+      main {
+        max-width: 1100px;
+        margin: -2rem auto 3rem;
+        padding: 0 4vw;
+      }
+
+      .panel {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        font-size: 0.95rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 10px;
+        border: 1px solid #cbd2d9;
+        background: #fff;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid #2f80ed;
+        border-color: transparent;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: #52606d;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      .tag {
+        background: #e7f0ff;
+        color: #1a3d7c;
+        padding: 0.35rem 0.6rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      button.primary {
+        background: #2f80ed;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #f0f4f8;
+        color: #102a43;
+        border: 1px solid #d9e2ec;
+        cursor: pointer;
+      }
+
+      .terminal {
+        background: #0b1120;
+        color: #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-top: 2rem;
+        position: relative;
+        font-family: "Fira Code", "Courier New", monospace;
+        min-height: 200px;
+        white-space: pre-wrap;
+      }
+
+      .terminal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .terminal-header span {
+        font-weight: 600;
+      }
+
+      .copy-status {
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Circuit Scout</h1>
+      <p>ISP Verification Assistant for quick circuit troubleshooting cheat sheets.</p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <form id="circuit-form">
+          <div>
+            <label for="circuitName">Circuit Name</label>
+            <input
+              id="circuitName"
+              name="circuitName"
+              type="text"
+              placeholder="e.g., JEDDAH-MAKKAH IP263"
+              required
+            />
+            <div class="hint">Auto-detects Site A, Site Z, Circuit ID, and Layer.</div>
+            <div class="tags" id="circuitTags">
+              <span class="tag">Site A: --</span>
+              <span class="tag">Site Z: --</span>
+              <span class="tag">Circuit ID: --</span>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top: 1.5rem;">
+            <div>
+              <label for="orderType">Order Type</label>
+              <select id="orderType" name="orderType" required>
+                <option value="">Select</option>
+                <option value="I-Order">New Installation (I-Order)</option>
+                <option value="M-Order">Migration (M-Order)</option>
+                <option value="C-Order">Upgrade/Downgrade (C-Order)</option>
+                <option value="O-Order">Cancellation (O-Order)</option>
+              </select>
+            </div>
+            <div>
+              <label for="layer">Layer</label>
+              <select id="layer" name="layer" required>
+                <option value="">Select</option>
+                <option value="Layer 2">Layer 2</option>
+                <option value="Layer 3">Layer 3</option>
+              </select>
+            </div>
+            <div>
+              <label for="vendor">Vendor</label>
+              <select id="vendor" name="vendor" required>
+                <option value="">Select</option>
+                <option value="Cisco">Cisco</option>
+                <option value="Huawei">Huawei</option>
+                <option value="Juniper">Juniper</option>
+              </select>
+            </div>
+            <div>
+              <label for="media">Media &amp; Topology</label>
+              <select id="media" name="media" required>
+                <option value="">Select</option>
+                <option value="Fiber">Fiber</option>
+                <option value="Copper">Copper</option>
+                <option value="Transmission">Transmission</option>
+                <option value="UPE">UPE</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top: 1.5rem;">
+            <div>
+              <label for="aggregator">Aggregator PE Name</label>
+              <input id="aggregator" name="aggregator" type="text" required />
+            </div>
+            <div id="upeField" class="hidden">
+              <label for="upe">UPE Name</label>
+              <input id="upe" name="upe" type="text" />
+            </div>
+            <div>
+              <label for="routing" id="routingLabel">VRF Name</label>
+              <input id="routing" name="routing" type="text" required />
+            </div>
+            <div>
+              <label for="vlan">VLAN ID</label>
+              <input id="vlan" name="vlan" type="text" required />
+            </div>
+            <div>
+              <label for="interface">Interface</label>
+              <input
+                id="interface"
+                name="interface"
+                type="text"
+                placeholder="e.g., Gi0/0/1"
+              />
+            </div>
+            <div id="customerIpField" class="hidden">
+              <label for="customerIp">Customer IP</label>
+              <input id="customerIp" name="customerIp" type="text" />
+            </div>
+            <div id="gatewayField" class="hidden">
+              <label for="gateway">Default Gateway</label>
+              <input id="gateway" name="gateway" type="text" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="primary">Generate Commands</button>
+            <button type="button" class="secondary" id="resetBtn">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="terminal" id="terminal">
+        <div class="terminal-header">
+          <span>Command Terminal</span>
+          <div class="copy-status" id="copyStatus">Awaiting input…</div>
+        </div>
+        <button class="secondary" id="copyBtn" type="button">Copy to Clipboard</button>
+        <pre id="output" style="margin-top: 1rem;">Generate commands to see the cheat sheet.</pre>
+      </section>
+    </main>
+
+    <script>
+      const circuitInput = document.getElementById("circuitName");
+      const circuitTags = document.getElementById("circuitTags");
+      const layerSelect = document.getElementById("layer");
+      const vendorSelect = document.getElementById("vendor");
+      const mediaSelect = document.getElementById("media");
+      const upeField = document.getElementById("upeField");
+      const routingLabel = document.getElementById("routingLabel");
+      const customerIpField = document.getElementById("customerIpField");
+      const gatewayField = document.getElementById("gatewayField");
+      const form = document.getElementById("circuit-form");
+      const output = document.getElementById("output");
+      const copyBtn = document.getElementById("copyBtn");
+      const copyStatus = document.getElementById("copyStatus");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const tagState = {
+        siteA: "--",
+        siteZ: "--",
+        circuitId: "--",
+      };
+
+      const updateTags = () => {
+        circuitTags.innerHTML = `
+          <span class="tag">Site A: ${tagState.siteA || "--"}</span>
+          <span class="tag">Site Z: ${tagState.siteZ || "--"}</span>
+          <span class="tag">Circuit ID: ${tagState.circuitId || "--"}</span>
+        `;
+      };
+
+      const detectLayer = (circuitId) => {
+        const upper = circuitId.toUpperCase();
+        if (upper.includes("IP") || upper.includes("SIP")) {
+          layerSelect.value = "Layer 3";
+        } else if (
+          upper.includes("DIA") ||
+          upper.includes("PLL") ||
+          upper.includes("DLL")
+        ) {
+          layerSelect.value = "Layer 2";
+        }
+        toggleLayerFields();
+      };
+
+      const parseCircuit = () => {
+        const raw = circuitInput.value.trim();
+        if (!raw) {
+          tagState.siteA = "--";
+          tagState.siteZ = "--";
+          tagState.circuitId = "--";
+          updateTags();
+          return;
+        }
+        const parts = raw.split(/\s+/);
+        const circuitId = parts.length > 1 ? parts[parts.length - 1] : "";
+        const sitePart = parts.length > 1 ? parts.slice(0, -1).join(" ") : raw;
+        const sites = sitePart.split("-");
+        tagState.siteA = sites[0] || "--";
+        tagState.siteZ = sites[1] || "--";
+        tagState.circuitId = circuitId || "--";
+        updateTags();
+        if (circuitId) {
+          detectLayer(circuitId);
+        }
+      };
+
+      const toggleMediaFields = () => {
+        const isUpe = mediaSelect.value === "UPE";
+        upeField.classList.toggle("hidden", !isUpe);
+      };
+
+      const toggleVendorLabel = () => {
+        const vendor = vendorSelect.value;
+        if (vendor === "Huawei") {
+          routingLabel.textContent = "VPN Instance";
+        } else if (vendor === "Juniper") {
+          routingLabel.textContent = "Routing Instance";
+        } else {
+          routingLabel.textContent = "VRF Name";
+        }
+      };
+
+      const toggleLayerFields = () => {
+        const isLayer3 = layerSelect.value === "Layer 3";
+        customerIpField.classList.toggle("hidden", !isLayer3);
+        gatewayField.classList.toggle("hidden", !isLayer3);
+      };
+
+      const buildCiscoLayer3Commands = (values) => `! --- VERIFICATION CHEAT SHEET FOR ${values.circuitId} ---
+! 1. Check Interface Description & Status
+sh int desc | i ${values.circuitId}
+
+! 2. Check Interface Configuration
+sh run int ${values.interface || "<interface>"}
+
+! 3. Verify Bridge Domain Status (if applicable)
+sh l2vpn bridge-domain interface ${values.interface || "<interface>"} brief
+
+! 4. Check L2VPN Bridge Group
+sh run l2vpn bridge group ${values.routing} bridge-domain ${values.vlan}
+
+! 5. Verify L3 Interface (BVI) Configuration
+sh run int BVI${values.vlan}
+
+! 6. Check ARP Table for Customer Reachability
+sh arp vrf ${values.routing} ${values.customerIp}
+
+! 7. Connectivity Test (Ping)
+ping vrf ${values.routing} ${values.customerIp} count 100
+
+! 8. Check BGP Neighbors (if applicable)
+show bgp vrf ${values.routing} summary | i ${values.customerIp}`;
+
+      const buildFallbackMessage = (values) => `Selected Vendor: ${values.vendor}
+Selected Layer: ${values.layer}
+
+Only the Cisco Layer 3 template is available right now. Add additional templates as needed.`;
+
+      circuitInput.addEventListener("input", parseCircuit);
+      mediaSelect.addEventListener("change", toggleMediaFields);
+      vendorSelect.addEventListener("change", toggleVendorLabel);
+      layerSelect.addEventListener("change", toggleLayerFields);
+
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(output.textContent);
+          copyStatus.textContent = "Copied to clipboard";
+        } catch (error) {
+          copyStatus.textContent = "Copy failed: permission denied";
+        }
+      });
+
+      resetBtn.addEventListener("click", () => {
+        form.reset();
+        tagState.siteA = "--";
+        tagState.siteZ = "--";
+        tagState.circuitId = "--";
+        updateTags();
+        copyStatus.textContent = "Awaiting input…";
+        output.textContent = "Generate commands to see the cheat sheet.";
+        toggleMediaFields();
+        toggleVendorLabel();
+        toggleLayerFields();
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const values = Object.fromEntries(formData.entries());
+        const circuitId = tagState.circuitId !== "--" ? tagState.circuitId : values.circuitName;
+        values.circuitId = circuitId || "<circuit id>";
+
+        const isCiscoL3 = values.vendor === "Cisco" && values.layer === "Layer 3";
+        if (isCiscoL3) {
+          output.textContent = buildCiscoLayer3Commands(values);
+        } else {
+          output.textContent = buildFallbackMessage(values);
+        }
+        copyStatus.textContent = "Commands ready";
+      });
+
+      updateTags();
+      toggleMediaFields();
+      toggleVendorLabel();
+      toggleLayerFields();
+    </script>
+  </body>
+</html>
